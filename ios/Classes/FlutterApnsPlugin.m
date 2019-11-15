@@ -132,11 +132,16 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandl
 
 - (void)application:(UIApplication *)application
 didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
-    NSString * token = [[[[deviceToken description]
-                          stringByReplacingOccurrencesOfString: @"<" withString: @""]
-                         stringByReplacingOccurrencesOfString: @">" withString: @""]
-                        stringByReplacingOccurrencesOfString: @" " withString: @""];
-    [_channel invokeMethod:@"onToken" arguments:token];
+    NSUInteger length = deviceToken.length;
+    if (length > 0) {
+        const unsigned char *buffer = deviceToken.bytes;
+        NSMutableString *hexString  = [NSMutableString stringWithCapacity:(length * 2)];
+        for (int i = 0; i < length; ++i) {
+            [hexString appendFormat:@"%02x", buffer[i]];
+        }
+        NSString * token = [hexString copy];
+        [_channel invokeMethod:@"onToken" arguments:token];
+    }
 }
 
 - (void)application:(UIApplication *)application
